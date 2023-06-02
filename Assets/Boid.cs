@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -23,14 +24,14 @@ public class Boid : MonoBehaviour
 
     private void Update()
     {
-        UpdateMove();
         UpdateNeighber();
+        LeaveWall();
         UpdateSeparation();
         UpdateAlignment();
         UpdateCohesion();
+        UpdateMove();
     }
 
-    /// <summary>自身の動きを更新する</summary>
     private void UpdateMove()
     {
         float time = Time.deltaTime;
@@ -47,7 +48,6 @@ public class Boid : MonoBehaviour
         _accel = Vector3.zero;
     }
 
-    /// <summary>自身の視界範囲内に移る隣人を更新する</summary>
     private void UpdateNeighber()
     {
         _neighbers.Clear();
@@ -73,6 +73,27 @@ public class Boid : MonoBehaviour
                     _neighbers.Add(other);
                 }
             }
+        }
+    }
+
+    private void LeaveWall()
+    {
+        float scale = Parameter.wallScale * 0.5f;
+        _accel +=
+            CalcWallAvoidanceVector(-scale - transform.position.x, Vector3.right) +
+            CalcWallAvoidanceVector(-scale - transform.position.y, Vector3.up) +
+            CalcWallAvoidanceVector(-scale - transform.position.z, Vector3.forward) +
+            CalcWallAvoidanceVector( scale - transform.position.x, Vector3.left) +
+            CalcWallAvoidanceVector( scale - transform.position.y, Vector3.down) +
+            CalcWallAvoidanceVector( scale - transform.position.z, Vector3.back);
+
+        Vector3 CalcWallAvoidanceVector(float distance, Vector3 direction)
+        {
+            if (distance < Parameter.wallDistance)
+            {
+                return direction * (Parameter.wallWeight / Mathf.Abs(distance / Parameter.wallDistance));
+            }
+            return Vector3.zero;
         }
     }
 
