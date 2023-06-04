@@ -7,23 +7,21 @@ using UnityEngine;
 // 日本語対応
 public class Simulator : MonoBehaviour
 {
-    [SerializeField] Boid _boids = null;
-    [SerializeField] Parameter _param = null;
-    [SerializeField] float _interval = 1f;
+    [SerializeField] private Boid[] _boids = null;
+    [SerializeField] private Parameter _param = null;
+    [SerializeField] private float _count = 1f;
+    [SerializeField] private Color _color = Color.white;
     private List<Boid> _boidObjects = new List<Boid>();
-    private float _timer = 0f;
 
-    private void Update()
+    private void OnEnable()
     {
-        _timer += Time.deltaTime;
-
-        if (_timer > _interval)
+        for (int i = 0; i < _count; i++)
         {
-            Boid boidObj = Instantiate(_boids, transform.position, Quaternion.identity, transform);
+            int n = Random.Range(0, _boids.Length);
+            Boid boidObj = Instantiate(_boids[n], Random.insideUnitSphere, Random.rotation, transform);
             boidObj.Parameter = _param;
             _boidObjects.Add(boidObj);
             boidObj.Neighbers = _boidObjects;
-            _timer = 0f;
         }
     }
 
@@ -31,7 +29,7 @@ public class Simulator : MonoBehaviour
     {
         if (!_param) return;
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(Vector3.zero, _param.wallScale);
+        Gizmos.color = _color;
+        Gizmos.DrawWireCube(Vector3.zero, Vector3.one * _param.wallScale);
     }
 }
