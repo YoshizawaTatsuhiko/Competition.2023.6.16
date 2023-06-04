@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -24,11 +23,12 @@ public class Boid : MonoBehaviour
 
     private void Update()
     {
-        UpdateNeighber();
         LeaveWall();
+        UpdateNeighber();
         UpdateSeparation();
         UpdateAlignment();
         UpdateCohesion();
+        //UpdateDirectionOfTravel();
         UpdateMove();
     }
 
@@ -37,9 +37,6 @@ public class Boid : MonoBehaviour
         float time = Time.deltaTime;
 
         _rb.velocity += _accel * time;
-        //Vector3 dir = _rb.velocity.normalized;
-        //float speed = _rb.velocity.magnitude;
-        //_rb.velocity = Mathf.Clamp(speed, Parameter.minSpeed, Parameter.maxSpeed) * dir;
         Mathf.Clamp(_rb.velocity.magnitude, Parameter.minSpeed, Parameter.maxSpeed);
         transform.position += _rb.velocity * time;
 
@@ -95,6 +92,31 @@ public class Boid : MonoBehaviour
             }
             return Vector3.zero;
         }
+    }
+
+    /// <summary>このオブジェクトの進行方向を更新する</summary>
+    private void UpdateDirectionOfTravel()
+    {
+        if (_neighbers.Count <= 0) return;
+
+        Vector3 leaveDirectionForce = Vector3.zero;
+        Vector3 averageVelocity = Vector3.zero;
+        Vector3 averagePosition = Vector3.zero;
+
+        foreach (var neighber in _neighbers)
+        {
+            leaveDirectionForce += (transform.position - neighber.transform.position).normalized;
+            averageVelocity += neighber.Rigidbody.velocity;
+            averagePosition += neighber.transform.position;
+        }
+        leaveDirectionForce /= _neighbers.Count;
+        averageVelocity /= _neighbers.Count;
+        averagePosition /= _neighbers.Count;
+
+        _accel +=
+            leaveDirectionForce * Parameter.separationWeight +
+            (averageVelocity - _rb.velocity) * Parameter.alignmentWeight +
+            (averagePosition - transform.position) * Parameter.cohesionWeight;;
     }
 
     private void UpdateSeparation()
