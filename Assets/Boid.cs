@@ -25,10 +25,7 @@ public class Boid : MonoBehaviour
     {
         LeaveWall();
         UpdateNeighber();
-        UpdateSeparation();
-        UpdateAlignment();
-        UpdateCohesion();
-        //UpdateDirectionOfTravel();
+        UpdateDirectionOfTravel();
         UpdateMove();
     }
 
@@ -94,17 +91,19 @@ public class Boid : MonoBehaviour
         }
     }
 
-    /// <summary>このオブジェクトの進行方向を更新する</summary>
+    /// <summary>個体の分離・整列・結合を司る</summary>
     private void UpdateDirectionOfTravel()
     {
         if (_neighbers.Count <= 0) return;
 
-        Vector3 leaveDirectionForce = Vector3.zero;
-        Vector3 averageVelocity = Vector3.zero;
-        Vector3 averagePosition = Vector3.zero;
+        Vector3 leaveDirectionForce = Vector3.zero; // 集団から離れる方向のベクトル
+        Vector3 averageVelocity = Vector3.zero;     // 集団の進行方向のベクトル
+        Vector3 averagePosition = Vector3.zero;     // 集団の中心に近づくベクトル
 
         foreach (var neighber in _neighbers)
         {
+            if(neighber == this) continue;
+
             leaveDirectionForce += (transform.position - neighber.transform.position).normalized;
             averageVelocity += neighber.Rigidbody.velocity;
             averagePosition += neighber.transform.position;
@@ -116,48 +115,6 @@ public class Boid : MonoBehaviour
         _accel +=
             leaveDirectionForce * Parameter.separationWeight +
             (averageVelocity - _rb.velocity) * Parameter.alignmentWeight +
-            (averagePosition - transform.position) * Parameter.cohesionWeight;;
-    }
-
-    private void UpdateSeparation()
-    {
-        if (_neighbers.Count <= 0) return;
-
-        Vector3 leaveDirectionForce = Vector3.zero;
-
-        foreach (var neighber in _neighbers)
-        {
-            leaveDirectionForce += (transform.position - neighber.transform.position).normalized;
-        }
-        leaveDirectionForce /= _neighbers.Count;
-        _accel += leaveDirectionForce * Parameter.separationWeight;
-    }
-
-    private void UpdateAlignment()
-    {
-        if (_neighbers.Count <= 0) return;
-
-        Vector3 averageVelocity = Vector3.zero;
-
-        foreach (var neighber in _neighbers)
-        {
-            averageVelocity += neighber.Rigidbody.velocity;
-        }
-        averageVelocity /= _neighbers.Count;
-        _accel += (averageVelocity - _rb.velocity) * Parameter.alignmentWeight;
-    }
-
-    private void UpdateCohesion()
-    {
-        if (_neighbers.Count <= 0) return;
-
-        Vector3 averagePosition = Vector3.zero;
-
-        foreach (var neighber in _neighbers)
-        {
-            averagePosition += neighber.transform.position;
-        }
-        averagePosition /= _neighbers.Count;
-        _accel += (averagePosition - transform.position) * Parameter.cohesionWeight;
+            (averagePosition - transform.position) * Parameter.cohesionWeight;
     }
 }
