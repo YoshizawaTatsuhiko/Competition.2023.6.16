@@ -11,9 +11,10 @@ public class Boid : MonoBehaviour
     public Parameter Parameter { get; set; }
     public List<Boid> Neighbers { get; set; }
     public Rigidbody Rigidbody => _rb;
+    public Vector3 CenterPoint { private get; set; } = Vector3.zero;
     private List<Boid> _neighbers = new List<Boid>();
-    private Vector3 _accel = Vector3.zero;
     private Rigidbody _rb = null;
+    private Vector3 _accel = Vector3.zero;
 
     private void Start()
     {
@@ -73,13 +74,21 @@ public class Boid : MonoBehaviour
     private void LeaveWall()
     {
         float scale = Parameter.wallScale * 0.5f;
+        Vector3 dir = CenterPoint - transform.position;
+
         _accel +=
-            CalcWallAvoidanceVector(-scale - transform.position.x, Vector3.right) +
-            CalcWallAvoidanceVector(-scale - transform.position.y, Vector3.up) +
-            CalcWallAvoidanceVector(-scale - transform.position.z, Vector3.forward) +
-            CalcWallAvoidanceVector( scale - transform.position.x, Vector3.left) +
-            CalcWallAvoidanceVector( scale - transform.position.y, Vector3.down) +
-            CalcWallAvoidanceVector( scale - transform.position.z, Vector3.back);
+        //CalcWallAvoidanceVector(-scale - transform.position.x, Vector3.right) +
+        //CalcWallAvoidanceVector(-scale - transform.position.y, Vector3.up) +
+        //CalcWallAvoidanceVector(-scale - transform.position.z, Vector3.forward) +
+        //CalcWallAvoidanceVector( scale - transform.position.x, Vector3.left) +
+        //CalcWallAvoidanceVector( scale - transform.position.y, Vector3.down) +
+        //CalcWallAvoidanceVector( scale - transform.position.z, Vector3.back);
+        CalcWallAvoidanceVector(-scale - transform.position.x, dir) +
+        CalcWallAvoidanceVector(-scale - transform.position.y, dir) +
+        CalcWallAvoidanceVector(-scale - transform.position.z, dir) +
+        CalcWallAvoidanceVector( scale - transform.position.x, dir) +
+        CalcWallAvoidanceVector( scale - transform.position.y, dir) +
+        CalcWallAvoidanceVector( scale - transform.position.z, dir);
 
         Vector3 CalcWallAvoidanceVector(float distance, Vector3 direction)
         {
