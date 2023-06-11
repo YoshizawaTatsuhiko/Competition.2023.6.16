@@ -1,12 +1,13 @@
-using Cysharp.Threading.Tasks.Triggers;
 using System.Collections;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 
 // 日本語対応
 public class Simulator : MonoBehaviour
 {
+    [Tooltip("居なくても問題なく動く")]
+    [SerializeField] private Leader _leader = null;
+    [SerializeField] private bool _isFollowLeader = true;
     [SerializeField] private Boid[] _boids = null;
     [SerializeField] private Parameter _param = null;
     [SerializeField] private float _count = 1f;
@@ -18,10 +19,14 @@ public class Simulator : MonoBehaviour
         for (int i = 0; i < _count; i++)
         {
             int n = Random.Range(0, _boids.Length);
-            Boid boidObj = Instantiate(_boids[n], Random.insideUnitSphere, Random.rotation, transform);
+            Vector3 instantiatePos = Random.insideUnitSphere;
+
+            if (_leader && _isFollowLeader) instantiatePos.y = 3f;
+            Boid boidObj = Instantiate(_boids[n], instantiatePos, Random.rotation, transform);
             boidObj.Parameter = _param;
             _boidObjects.Add(boidObj);
             boidObj.Neighbers = _boidObjects;
+            boidObj.Leader = _leader;
         }
     }
 
@@ -30,6 +35,6 @@ public class Simulator : MonoBehaviour
         if (!_param) return;
 
         Gizmos.color = _color;
-        Gizmos.DrawWireCube(Vector3.zero, Vector3.one * _param.wallScale);
+        Gizmos.DrawWireCube(transform.position, Vector3.one * _param.wallScale);
     }
 }
