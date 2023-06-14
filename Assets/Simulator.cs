@@ -1,13 +1,13 @@
 using Cysharp.Threading.Tasks.Triggers;
 using System.Collections;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 
 // 日本語対応
 public class Simulator : MonoBehaviour
 {
-    [SerializeField] private Boid[] _boids = null;
+    [SerializeField] private Transform _commander = null;
+    [SerializeField] private GameObject[] _boids = null;
     [SerializeField] private Parameter _param = null;
     [SerializeField] private float _count = 1f;
     [SerializeField] private Color _color = Color.white;
@@ -18,10 +18,17 @@ public class Simulator : MonoBehaviour
         for (int i = 0; i < _count; i++)
         {
             int n = Random.Range(0, _boids.Length);
-            Boid boidObj = Instantiate(_boids[n], Random.insideUnitSphere, Random.rotation, transform);
+            Vector3 instantiatePos = transform.position + Random.insideUnitSphere;
+            GameObject go = Instantiate(_boids[n], instantiatePos, Random.rotation, transform);
+            Boid boidObj = null;
+
+            if(go.TryGetComponent(out Boid boid)) boidObj = boid;
+            else boidObj = go.AddComponent<Boid>();
+
             boidObj.Parameter = _param;
+            boidObj.Neighbors = _boidObjects;
+            boidObj.Commander = transform;
             _boidObjects.Add(boidObj);
-            boidObj.Neighbers = _boidObjects;
         }
     }
 
@@ -30,6 +37,6 @@ public class Simulator : MonoBehaviour
         if (!_param) return;
 
         Gizmos.color = _color;
-        Gizmos.DrawWireCube(Vector3.zero, Vector3.one * _param.wallScale);
+        Gizmos.DrawWireSphere(transform.position, _param.wallScale);
     }
 }
