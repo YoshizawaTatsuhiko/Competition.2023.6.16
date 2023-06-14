@@ -14,7 +14,7 @@ public class PlayerMove : MonoBehaviour
 
     private void Update()
     {
-        _rigidbody.velocity = new Vector3(
-            Input.GetAxisRaw("Horizontal"), _rigidbody.velocity.y, Input.GetAxisRaw("Vertical")) * _speed;
+        Vector3 vec = new Vector3(Input.GetAxisRaw("Horizontal"), _rigidbody.velocity.y, Input.GetAxisRaw("Vertical"));
+        _rigidbody.velocity = vec.normalized * _speed;
     }
 }
