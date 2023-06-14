@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -9,10 +10,10 @@ public class Boid : MonoBehaviour
 {
     /// <summary>スクリプタブルオブジェクトから入力されたパラメーター</summary>
     public Parameter Parameter { get; set; }
-    public List<Boid> Neighbers { get; set; }
+    public List<Boid> Neighbors { get; set; }
     public Rigidbody Rigidbody => _rb;
-    public Vector3 CenterPoint { private get; set; } = Vector3.zero;
-    private List<Boid> _neighbers = new List<Boid>();
+    public Transform Commander { get; set; } = null;
+    private List<Boid> _neighbors = new List<Boid>();
     private Rigidbody _rb = null;
     private Vector3 _accel = Vector3.zero;
 
@@ -24,8 +25,8 @@ public class Boid : MonoBehaviour
 
     private void Update()
     {
+        UpdateNeighbor();
         LeaveWall();
-        UpdateNeighber();
         UpdateDirectionOfTravel();
         UpdateMove();
     }
@@ -43,29 +44,28 @@ public class Boid : MonoBehaviour
         _accel = Vector3.zero;
     }
 
-    private void UpdateNeighber()
+    private void UpdateNeighbor()
     {
-        _neighbers.Clear();
+        _neighbors.Clear();
 
         float sightRad = Mathf.Cos(Parameter.neighborFov * Mathf.Deg2Rad);
-        float searchNeighberDistance = Parameter.neighborDistance;
 
-        foreach (var other in Neighbers)
+        foreach (var other in Neighbors)
         {
             if(other == this) continue;
 
-            Vector3 directionOfNeighber = other.transform.position - transform.position;
-            float distanceFromNeighbers = directionOfNeighber.magnitude;
+            Vector3 toNeighbor = other.transform.position - transform.position;
+            float distanceToNeighbor = toNeighbor.magnitude;
 
-            if (distanceFromNeighbers < searchNeighberDistance)
+            if (distanceToNeighbor < Parameter.neighborDistance)
             {
-                Vector3 dir = directionOfNeighber.normalized;
+                Vector3 dir = toNeighbor.normalized;
                 Vector3 foward = _rb.velocity.normalized;
                 float sight = Vector3.Dot(dir, foward);
 
                 if (sight < sightRad)
                 {
-                    _neighbers.Add(other);
+                    _neighbors.Add(other);
                 }
             }
         }
@@ -73,43 +73,26 @@ public class Boid : MonoBehaviour
 
     private void LeaveWall()
     {
-        float scale = Parameter.wallScale * 0.5f;
-        Vector3 dir = CenterPoint - transform.position;
+        Vector3 toCommander = Commander.position - transform.position;
+        float distance = Parameter.wallScale - toCommander.magnitude;
 
-        _accel +=
-        //CalcWallAvoidanceVector(-scale - transform.position.x, Vector3.right) +
-        //CalcWallAvoidanceVector(-scale - transform.position.y, Vector3.up) +
-        //CalcWallAvoidanceVector(-scale - transform.position.z, Vector3.forward) +
-        //CalcWallAvoidanceVector( scale - transform.position.x, Vector3.left) +
-        //CalcWallAvoidanceVector( scale - transform.position.y, Vector3.down) +
-        //CalcWallAvoidanceVector( scale - transform.position.z, Vector3.back);
-        CalcWallAvoidanceVector(-scale - transform.position.x, dir) +
-        CalcWallAvoidanceVector(-scale - transform.position.y, dir) +
-        CalcWallAvoidanceVector(-scale - transform.position.z, dir) +
-        CalcWallAvoidanceVector( scale - transform.position.x, dir) +
-        CalcWallAvoidanceVector( scale - transform.position.y, dir) +
-        CalcWallAvoidanceVector( scale - transform.position.z, dir);
-
-        Vector3 CalcWallAvoidanceVector(float distance, Vector3 direction)
+        if (distance < Parameter.wallDistance)
         {
-            if (distance < Parameter.wallDistance)
-            {
-                return direction * (Parameter.wallWeight / Mathf.Abs(distance / Parameter.wallDistance));
-            }
-            return Vector3.zero;
+            _accel +=
+                toCommander.normalized * (Parameter.wallWeight / Mathf.Abs(distance / Parameter.wallDistance));
         }
     }
 
     /// <summary>個体の分離・整列・結合を司る</summary>
     private void UpdateDirectionOfTravel()
     {
-        if (_neighbers.Count <= 0) return;
+        if (_neighbors.Count <= 0) return;
 
         Vector3 leaveDirectionForce = Vector3.zero; // 集団から離れる方向のベクトル
         Vector3 averageVelocity = Vector3.zero;     // 集団の進行方向のベクトル
         Vector3 averagePosition = Vector3.zero;     // 集団の中心に近づくベクトル
 
-        foreach (var neighber in _neighbers)
+        foreach (var neighber in _neighbors)
         {
             if(neighber == this) continue;
 
@@ -117,9 +100,9 @@ public class Boid : MonoBehaviour
             averageVelocity += neighber.Rigidbody.velocity;
             averagePosition += neighber.transform.position;
         }
-        leaveDirectionForce /= _neighbers.Count;
-        averageVelocity /= _neighbers.Count;
-        averagePosition /= _neighbers.Count;
+        leaveDirectionForce /= _neighbors.Count;
+        averageVelocity /= _neighbors.Count;
+        averagePosition /= _neighbors.Count;
 
         _accel +=
             leaveDirectionForce * Parameter.separationWeight +
