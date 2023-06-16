@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 330090941780458934}
   - component: {fileID: 537585395068791323}
   - component: {fileID: 3173163458461865760}
-  - component: {fileID: -2911048128233317223}
+  - component: {fileID: 5159698674021038381}
   m_Layer: 0
-  m_Name: Test Object_LB
+  m_Name: Test Object_P
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -64,7 +64,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 1c493500d16982d48943fded7d605d05, type: 2}
+  - {fileID: 2100000, guid: 3990eea4750ea4141bb9d118ac4ccece, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -116,7 +116,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &-2911048128233317223
+--- !u!114 &5159698674021038381
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
