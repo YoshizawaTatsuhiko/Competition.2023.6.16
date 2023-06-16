@@ -9,10 +9,10 @@ using UnityEngine;
 public class Boid : MonoBehaviour
 {
     /// <summary>スクリプタブルオブジェクトから入力されたパラメーター</summary>
-    public Parameter Parameter { get; set; }
-    public List<Boid> Neighbors { get; set; }
+    public Parameter Parameter { private get; set; }
+    public List<Boid> Neighbors { private get; set; }
     public Rigidbody Rigidbody => _rb;
-    public Transform Commander { get; set; } = null;
+    public Rigidbody CommanderRb { private get; set; }
     private List<Boid> _neighbors = new List<Boid>();
     private Rigidbody _rb = null;
     private Vector3 _accel = Vector3.zero;
@@ -63,7 +63,7 @@ public class Boid : MonoBehaviour
                 Vector3 foward = _rb.velocity.normalized;
                 float sight = Vector3.Dot(dir, foward);
 
-                if (sight < sightRad)
+                if (sight > sightRad)
                 {
                     _neighbors.Add(other);
                 }
@@ -73,7 +73,8 @@ public class Boid : MonoBehaviour
 
     private void LeaveWall()
     {
-        Vector3 toCommander = Commander.position - transform.position;
+        Vector3 toCommander = CommanderRb.position - transform.position;
+        toCommander.y = 0;
         float distance = Parameter.wallScale - toCommander.magnitude;
 
         if (distance < Parameter.wallDistance)
@@ -86,27 +87,31 @@ public class Boid : MonoBehaviour
     /// <summary>個体の分離・整列・結合を司る</summary>
     private void UpdateDirectionOfTravel()
     {
-        if (_neighbors.Count <= 0) return;
+        //if (_neighbors.Count <= 0) return;
 
         Vector3 leaveDirectionForce = Vector3.zero; // 集団から離れる方向のベクトル
-        Vector3 averageVelocity = Vector3.zero;     // 集団の進行方向のベクトル
-        Vector3 averagePosition = Vector3.zero;     // 集団の中心に近づくベクトル
+        //Vector3 averageVelocity = Vector3.zero;     // 集団の進行方向のベクトル
+        //Vector3 averagePosition = Vector3.zero;     // 集団の中心に近づくベクトル
 
         foreach (var neighber in _neighbors)
         {
             if(neighber == this) continue;
 
             leaveDirectionForce += (transform.position - neighber.transform.position).normalized;
-            averageVelocity += neighber.Rigidbody.velocity;
-            averagePosition += neighber.transform.position;
+            //averageVelocity += neighber.Rigidbody.velocity;
+            //averagePosition += neighber.transform.position;
         }
-        leaveDirectionForce /= _neighbors.Count;
-        averageVelocity /= _neighbors.Count;
-        averagePosition /= _neighbors.Count;
+        //leaveDirectionForce /= _neighbors.Count;
+        //averageVelocity /= _neighbors.Count;
+        //averagePosition /= _neighbors.Count;
+        leaveDirectionForce /= Neighbors.Count;
 
         _accel +=
             leaveDirectionForce * Parameter.separationWeight +
-            (averageVelocity - _rb.velocity) * Parameter.alignmentWeight +
-            (averagePosition - transform.position) * Parameter.cohesionWeight;
+            //(averageVelocity - _rb.velocity) * Parameter.alignmentWeight +
+            //(averagePosition - transform.position) * Parameter.cohesionWeight;
+            (CommanderRb.velocity - _rb.velocity) * Parameter.alignmentWeight +
+            (CommanderRb.position - transform.position) * Parameter.cohesionWeight;
+        _accel.y = 0f;
     }
 }
