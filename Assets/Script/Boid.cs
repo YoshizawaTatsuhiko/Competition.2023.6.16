@@ -1,117 +1,74 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using UnityEngine;
-
-[RequireComponent(typeof(Rigidbody))]
 
 // 日本語対応
 public class Boid : MonoBehaviour
 {
-    /// <summary>スクリプタブルオブジェクトから入力されたパラメーター</summary>
-    public Parameter Parameter { private get; set; }
-    public List<Boid> Neighbors { private get; set; }
-    public Rigidbody Rigidbody => _rb;
-    public Rigidbody CommanderRb { private get; set; }
-    private List<Boid> _neighbors = new List<Boid>();
-    private Rigidbody _rb = null;
+    public Parameter Param { get; set; }
+    public Vector3 Center { get; set; }
+    public Vector3 Position { get; private set; }
+    public Vector3 Velocity { get; private set; }
+
     private Vector3 _accel = Vector3.zero;
+    private Collider[] _neighbor = null;
+    private float _timer = 0f;
 
     private void Start()
     {
-        _rb = GetComponent<Rigidbody>();
-        _rb.velocity = transform.forward * Parameter.initSpeed;
+        Position = transform.position;
+        Velocity = transform.forward * Param.initSpeed;
+        _neighbor = new Collider[Param.maxNeighborsToSearch];
     }
 
     private void Update()
     {
-        UpdateNeighbor();
         LeaveWall();
-        UpdateDirectionOfTravel();
-        UpdateMove();
+        UpdateMove(Time.deltaTime);
     }
 
-    private void UpdateMove()
+    private void UpdateMove(float deltaTime)
     {
-        float time = Time.deltaTime;
+        Velocity += _accel * deltaTime;
+        Velocity = Mathf.Clamp(Velocity.magnitude, Param.minSpeed, Param.maxSpeed) * Velocity.normalized;
+        Position += Velocity * deltaTime;
 
-        _rb.velocity += _accel * time;
-        Mathf.Clamp(_rb.velocity.magnitude, Parameter.minSpeed, Parameter.maxSpeed);
-        transform.position += _rb.velocity * time;
-
-        transform.rotation = Quaternion.LookRotation(_rb.velocity);
+        transform.position = Position;
+        if (Velocity != Vector3.zero) transform.rotation = Quaternion.LookRotation(Velocity);
 
         _accel = Vector3.zero;
     }
 
-    private void UpdateNeighbor()
-    {
-        _neighbors.Clear();
-
-        float sightRad = Mathf.Cos(Parameter.neighborFov * Mathf.Deg2Rad);
-
-        foreach (var other in Neighbors)
-        {
-            if(other == this) continue;
-
-            Vector3 toNeighbor = other.transform.position - transform.position;
-            float distanceToNeighbor = toNeighbor.magnitude;
-
-            if (distanceToNeighbor < Parameter.neighborDistance)
-            {
-                Vector3 dir = toNeighbor.normalized;
-                Vector3 foward = _rb.velocity.normalized;
-                float sight = Vector3.Dot(dir, foward);
-
-                if (sight > sightRad)
-                {
-                    _neighbors.Add(other);
-                }
-            }
-        }
-    }
-
     private void LeaveWall()
     {
-        Vector3 toCommander = CommanderRb.position - transform.position;
-        toCommander.y = 0;
-        float distance = Parameter.wallScale - toCommander.magnitude;
+        Vector3 toCenter = Center - transform.position;
+        float distance = Param.wallScale - toCenter.magnitude;
 
-        if (distance < Parameter.wallDistance)
+        if (distance < Param.wallDistance)
         {
-            _accel +=
-                toCommander.normalized * (Parameter.wallWeight / Mathf.Abs(distance / Parameter.wallDistance));
+            _accel += toCenter.normalized * (Param.wallWeight / Mathf.Abs(distance / Param.wallDistance));
         }
     }
 
-    /// <summary>個体の分離・整列・結合を司る</summary>
-    private void UpdateDirectionOfTravel()
+    private void UpdateNeighbor()
     {
-        //if (_neighbors.Count <= 0) return;
+        Physics.OverlapSphereNonAlloc(transform.position, Param.searchNeighborRadius, _neighbor);
+    }
 
-        Vector3 leaveDirectionForce = Vector3.zero; // 集団から離れる方向のベクトル
-        //Vector3 averageVelocity = Vector3.zero;     // 集団の進行方向のベクトル
-        //Vector3 averagePosition = Vector3.zero;     // 集団の中心に近づくベクトル
+    /// <summary>一定時間が経過したかを計測し、結果を返す</summary>
+    /// <param name="interval"></param>
+    /// <param name="timer"></param>
+    /// <param name="deltaTime"></param>
+    /// <returns>経過した -> true | 経過していない -> false</returns>
+    private bool CheckIntervalTimer(float interval, ref float timer,  float deltaTime)
+    {
+        timer += deltaTime;
 
-        foreach (var neighber in _neighbors)
+        if (timer > interval)
         {
-            if(neighber == this) continue;
-
-            leaveDirectionForce += (transform.position - neighber.transform.position).normalized;
-            //averageVelocity += neighber.Rigidbody.velocity;
-            //averagePosition += neighber.transform.position;
+            timer = 0f;
+            return true;
         }
-        //leaveDirectionForce /= _neighbors.Count;
-        //averageVelocity /= _neighbors.Count;
-        //averagePosition /= _neighbors.Count;
-        leaveDirectionForce /= Neighbors.Count;
-
-        _accel +=
-            leaveDirectionForce * Parameter.separationWeight +
-            //(averageVelocity - _rb.velocity) * Parameter.alignmentWeight +
-            //(averagePosition - transform.position) * Parameter.cohesionWeight;
-            (CommanderRb.velocity - _rb.velocity) * Parameter.alignmentWeight +
-            (CommanderRb.position - transform.position) * Parameter.cohesionWeight;
-        _accel.y = 0f;
+        else return false;
     }
 }
