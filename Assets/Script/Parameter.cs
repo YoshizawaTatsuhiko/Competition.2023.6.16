@@ -5,11 +5,14 @@ using UnityEngine;
 // 日本語対応
 public class Parameter : ScriptableObject
 {
+    public float intervalToSimulate = 0.1f;
     public float initSpeed = 2f;
     public float minSpeed = 2f;
     public float maxSpeed = 5f;
     public float neighborDistance = 1f;
     public float neighborFov = 90f;
+    public float searchNeighborRadius = 1f;
+    public int maxNeighborsToSearch = 10;
     public float separationWeight = 5f;
     public float alignmentWeight = 2f;
     public float cohesionWeight = 3f;
