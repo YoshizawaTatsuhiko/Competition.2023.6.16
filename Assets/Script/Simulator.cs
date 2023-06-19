@@ -5,49 +5,18 @@ using UnityEngine;
 // 日本語対応
 public class Simulator : MonoBehaviour
 {
-    [SerializeField] private Rigidbody _commanderRb = null;
-    [SerializeField] private GameObject[] _boids = null;
-    [SerializeField] private Parameter _param = null;
-    [SerializeField] private int _count = 1;
-    [SerializeField] private Color _color = Color.white;
-    private List<Boid> _boidObjects = new List<Boid>();
+    [SerializeField] Parameter _param = null;
+    [SerializeField] private Boid[] _boids = null;
+    [SerializeField] private int _generateCount = 10;
 
-    private void OnEnable()
+    private void Start()
     {
-        List<Vector3> instantiatePos = new List<Vector3>();
-        instantiatePos.Add(_commanderRb.position);
-
-        while (instantiatePos.Count <= _count)
+        Vector3 generatePos = transform.position + Random.insideUnitSphere;
+        
+        for (int i = 0, random = 0; i < _generateCount; i++, random = Random.Range(0, _boids.Length))
         {
-            Vector3 randomVec = Random.insideUnitSphere * _param.wallScale;
-            randomVec.z = randomVec.y;
-            randomVec.y = 0f;
-            bool isOverlapObject = false;
-
-            for (int i = 0; i < instantiatePos.Count; i++)
-            {
-                if (Physics.CheckSphere(instantiatePos[i], 0.5f, LayerMask.GetMask("Ignore Raycast")))
-                {
-                    isOverlapObject = true;
-                    break;
-                }
-            }
-
-            if (isOverlapObject) continue;
-
-            Vector3 generatePos = _commanderRb.position + randomVec;
-            int n = Random.Range(0, _boids.Length);
-            GameObject go = Instantiate(_boids[n], generatePos, Quaternion.LookRotation(_commanderRb.position), transform);
-            instantiatePos.Add(generatePos);
-            Boid boidObj = null;
-
-            if (go.TryGetComponent(out Boid boid)) boidObj = boid;
-            else boidObj = go.AddComponent<Boid>();
-
-            boidObj.Parameter = _param;
-            boidObj.Neighbors = _boidObjects;
-            boidObj.CommanderRb = _commanderRb;
-            _boidObjects.Add(boidObj);
+            var boid = Instantiate(_boids[random], generatePos, Random.rotation, transform);
+            boid.Param = _param;
         }
     }
 
@@ -55,7 +24,7 @@ public class Simulator : MonoBehaviour
     {
         if (!_param) return;
 
-        Gizmos.color = _color;
+        Gizmos.color = Color.white;
         Gizmos.DrawWireSphere(transform.position, _param.wallScale);
     }
 }
