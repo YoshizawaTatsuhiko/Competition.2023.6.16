@@ -11,14 +11,14 @@ public class Boid : MonoBehaviour
     public Vector3 Velocity { get; private set; }
 
     private Vector3 _accel = Vector3.zero;
-    private Collider[] _neighbor = null;
+    private Collider[] _surroundingCollider = null;
     private float _timer = 0f;
 
     private void Start()
     {
         Position = transform.position;
         Velocity = transform.forward * Param.initSpeed;
-        _neighbor = new Collider[Param.maxNeighborsToSearch];
+        _surroundingCollider = new Collider[Param.maxNeighborsToSearch];
     }
 
     private void Update()
@@ -52,7 +52,16 @@ public class Boid : MonoBehaviour
 
     private void UpdateNeighbor()
     {
-        Physics.OverlapSphereNonAlloc(transform.position, Param.searchNeighborRadius, _neighbor);
+        int n = Physics.OverlapSphereNonAlloc(
+            transform.position, Param.searchNeighborRadius, _surroundingCollider, LayerMask.GetMask("Ignore Raycast"));
+
+        for (int i = 0; i < n; i++)
+        {
+            if (_surroundingCollider[i].TryGetComponent(out Boid boid))
+            {
+                
+            }
+        }
     }
 
     /// <summary>一定時間が経過したかを計測し、結果を返す</summary>
