@@ -12,6 +12,7 @@ public class Boid : MonoBehaviour
 
     private Vector3 _accel = Vector3.zero;
     private Collider[] _surroundingCollider = null;
+    private List<Boid> _neighbors = new List<Boid>();
     private float _timer = 0f;
 
     private void Start()
@@ -24,6 +25,8 @@ public class Boid : MonoBehaviour
     private void Update()
     {
         LeaveWall();
+        //UpdateNeighbor();
+        //CollectiveActionBehaviour();
         UpdateMove(Time.deltaTime);
     }
 
@@ -48,20 +51,60 @@ public class Boid : MonoBehaviour
         {
             _accel += toCenter.normalized * (Param.wallWeight / Mathf.Abs(distance / Param.wallDistance));
         }
+        else if (distance > Param.wallDistance) Debug.LogWarning("Out Of Simulated Range");
     }
 
+    /// <summary>近傍にいる仲間を探索する</summary>
     private void UpdateNeighbor()
     {
+        _neighbors.Clear();
+
         int n = Physics.OverlapSphereNonAlloc(
-            transform.position, Param.searchNeighborRadius, _surroundingCollider, LayerMask.GetMask("Ignore Raycast"));
+            transform.position, Param.neighborDistance, _surroundingCollider, LayerMask.GetMask("Ignore Raycast"));
 
         for (int i = 0; i < n; i++)
         {
-            if (_surroundingCollider[i].TryGetComponent(out Boid boid))
+            if (_surroundingCollider[i].gameObject == this) continue;
+
+            Collider othersObj = _surroundingCollider[i];
+
+            if (othersObj.TryGetComponent(out Boid boid))
             {
-                
+                float sightRad = Param.neighborFov * Mathf.Deg2Rad;
+                Vector3 otherPos = othersObj.transform.position;
+                Vector3 neighborDir = (otherPos - Position).normalized;
+                Vector3 forward = Velocity.normalized;
+                float sight = Vector3.Dot(neighborDir, forward);
+
+                if (sight > sightRad)
+                {
+                    _neighbors.Add(boid);
+                }
             }
         }
+    }
+
+    /// <summary></summary>
+    private void CollectiveActionBehaviour()
+    {
+        Vector3 leaveNeighbor = Vector3.zero;
+        Vector3 averageVelocity = Vector3.zero;
+        Vector3 averagePosition = Vector3.zero;
+
+        foreach (var neighbor in _neighbors)
+        {
+            leaveNeighbor += (Position - neighbor.Position).normalized;
+            averageVelocity += neighbor.Velocity;
+            averagePosition += neighbor.Position;
+        }
+        leaveNeighbor /= _neighbors.Count;
+        averageVelocity /= _neighbors.Count;
+        averagePosition /= _neighbors.Count;
+
+        _accel +=
+            leaveNeighbor * Param.separationWeight +
+            (averageVelocity - Velocity) * Param.alignmentWeight +
+            (averagePosition - Position) * Param.cohesionWeight;
     }
 
     /// <summary>一定時間が経過したかを計測し、結果を返す</summary>
