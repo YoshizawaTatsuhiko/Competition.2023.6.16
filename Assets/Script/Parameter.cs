@@ -11,7 +11,6 @@ public class Parameter : ScriptableObject
     public float maxSpeed = 5f;
     public float neighborDistance = 1f;
     public float neighborFov = 90f;
-    public float searchNeighborRadius = 1f;
     public int maxNeighborsToSearch = 10;
     public float separationWeight = 5f;
     public float alignmentWeight = 2f;
