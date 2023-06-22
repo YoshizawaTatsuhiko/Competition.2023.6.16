@@ -25,8 +25,8 @@ public class Boid : MonoBehaviour
     private void Update()
     {
         LeaveWall();
-        //UpdateNeighbor();
-        //CollectiveActionBehaviour();
+        UpdateNeighbor();
+        CollectiveAction();
         UpdateMove(Time.deltaTime);
     }
 
@@ -51,7 +51,6 @@ public class Boid : MonoBehaviour
         {
             _accel += toCenter.normalized * (Param.wallWeight / Mathf.Abs(distance / Param.wallDistance));
         }
-        else if (distance > Param.wallDistance) Debug.LogWarning("Out Of Simulated Range");
     }
 
     /// <summary>近傍にいる仲間を探索する</summary>
@@ -60,7 +59,7 @@ public class Boid : MonoBehaviour
         _neighbors.Clear();
 
         int n = Physics.OverlapSphereNonAlloc(
-            transform.position, Param.neighborDistance, _surroundingCollider, LayerMask.GetMask("Ignore Raycast"));
+            transform.position, Param.neighborDistance, _surroundingCollider/*, LayerMask.GetMask("Ignore Raycast")*/);
 
         for (int i = 0; i < n; i++)
         {
@@ -85,15 +84,17 @@ public class Boid : MonoBehaviour
     }
 
     /// <summary></summary>
-    private void CollectiveActionBehaviour()
+    private void CollectiveAction()
     {
+        if (_neighbors.Count <= 0) return;
+
         Vector3 leaveNeighbor = Vector3.zero;
         Vector3 averageVelocity = Vector3.zero;
         Vector3 averagePosition = Vector3.zero;
 
         foreach (var neighbor in _neighbors)
         {
-            leaveNeighbor += (Position - neighbor.Position).normalized;
+            leaveNeighbor += (transform.position - neighbor.Position).normalized;
             averageVelocity += neighbor.Velocity;
             averagePosition += neighbor.Position;
         }
