@@ -17,6 +17,7 @@ public class Simulator : MonoBehaviour
         {
             var boid = Instantiate(_boids[random], generatePos, Random.rotation, transform);
             boid.Param = _param;
+            boid.Center = transform.position;
         }
     }
 
