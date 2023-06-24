@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,15 +17,19 @@ public class Boid : MonoBehaviour
     private void Start()
     {
         Position = transform.position;
-        Velocity = transform.forward * Param.initSpeed;
+        Velocity = transform.up * Param.initSpeed;
         _surroundingCollider = new Collider[Param.maxNeighborsToSearch];
     }
 
     private void Update()
     {
         LeaveWall();
-        UpdateNeighbor();
-        CollectiveAction();
+
+        if (CheckInterval(Param.intervalToSimulate, ref _timer, Time.deltaTime))
+        {
+            UpdateNeighbor();
+            CollectiveAction();
+        }
         UpdateMove(Time.deltaTime);
     }
 
@@ -75,7 +78,7 @@ public class Boid : MonoBehaviour
                 Vector3 forward = Velocity.normalized;
                 float sight = Vector3.Dot(neighborDir, forward);
 
-                if (sight > sightRad)
+                if (sight < sightRad)
                 {
                     _neighbors.Add(boid);
                 }
@@ -113,15 +116,14 @@ public class Boid : MonoBehaviour
     /// <param name="timer"></param>
     /// <param name="deltaTime"></param>
     /// <returns>経過した -> true | 経過していない -> false</returns>
-    private bool CheckIntervalTimer(float interval, ref float timer,  float deltaTime)
+    private bool CheckInterval(float interval, ref float timer, float deltaTime)
     {
-        timer += deltaTime;
-
         if (timer > interval)
         {
             timer = 0f;
             return true;
         }
-        else return false;
+        timer += deltaTime;
+        return false;
     }
 }

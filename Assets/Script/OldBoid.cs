@@ -60,8 +60,8 @@ public class OldBoid : MonoBehaviour
             if (distanceToNeighbor < Parameter.neighborDistance)
             {
                 Vector3 dir = toNeighbor.normalized;
-                Vector3 foward = _rb.velocity.normalized;
-                float sight = Vector3.Dot(dir, foward);
+                Vector3 forward = _rb.velocity.normalized;
+                float sight = Vector3.Dot(dir, forward);
 
                 if (sight > sightRad)
                 {
