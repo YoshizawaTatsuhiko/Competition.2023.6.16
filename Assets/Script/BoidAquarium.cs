@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // 日本語対応
-public class Boid : BoidBase
+public class BoidAquarium : BoidBase
 {
     private Collider[] _surroundingCollider = null;
     private List<BoidBase> _neighbors = new List<BoidBase>();
@@ -80,7 +80,8 @@ public class Boid : BoidBase
         }
     }
 
-    /// <summary>集団に対する 分離・整列・結合 を制御する</summary>
+    /// <summary>集団に対する 分離・整列・結合 を制御する
+    /// </summary>
     private void UpdateGroupMove()
     {
         if (_neighbors.Count <= 0) return;
