@@ -6,18 +6,22 @@ using UnityEngine;
 public class Simulator : MonoBehaviour
 {
     [SerializeField] Parameter _param = null;
-    [SerializeField] private Boid[] _boids = null;
+    [SerializeField] LayerMask _doNotIgnoreLayer = 0;
+    [SerializeField] private BoidBase[] _boids = null;
     [SerializeField] private int _generateCount = 10;
 
     private void Start()
     {
+        if (_boids.Length <= 0) return;
+        
         Vector3 generatePos = transform.position + Random.insideUnitSphere;
         
         for (int i = 0, random = 0; i < _generateCount; i++, random = Random.Range(0, _boids.Length))
         {
             var boid = Instantiate(_boids[random], generatePos, Random.rotation, transform);
             boid.Param = _param;
-            boid.Center = transform.position;
+            boid.CenterOfSimulationArea = transform.position;
+            boid.LayerMask = _doNotIgnoreLayer;
         }
     }
 
