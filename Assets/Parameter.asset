@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 716ca9369592c4a42a655ad95585f483, type: 3}
   m_Name: Parameter
   m_EditorClassIdentifier: 
-  intervalToSimulate: 0.5
+  intervalToSimulate: 0.3
   initSpeed: 2
   minSpeed: 2
   maxSpeed: 5
   neighborDistance: 5
   neighborFov: 90
   maxNeighborsToSearch: 10
-  separationWeight: 25
-  alignmentWeight: 3
-  cohesionWeight: 3
+  separationWeight: 100
+  alignmentWeight: 4
+  cohesionWeight: 4
   wallScale: 15
   wallDistance: 3
   wallWeight: 3
