@@ -22,7 +22,7 @@ public class Boid : BoidBase
         if (CheckInterval(Param.intervalToSimulate, ref _timer, Time.deltaTime))
         {
             UpdateNeighbor();
-            UpdateGroupMove();
+            UpdateGroup();
         }
         UpdateMove(Time.deltaTime);
     }
@@ -81,7 +81,7 @@ public class Boid : BoidBase
     }
 
     /// <summary>集団に対する 分離・整列・結合 を制御する</summary>
-    private void UpdateGroupMove()
+    private void UpdateGroup()
     {
         if (_neighbors.Count <= 0) return;
 

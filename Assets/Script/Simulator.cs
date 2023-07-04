@@ -6,7 +6,7 @@ using UnityEngine;
 public class Simulator : MonoBehaviour
 {
     [SerializeField] Parameter _param = null;
-    [SerializeField] LayerMask _doNotIgnoreLayer = 0;
+    [SerializeField] LayerMask _notIgnoreLayer = 0;
     [SerializeField] private BoidBase[] _boids = null;
     [SerializeField] private int _generateCount = 10;
 
@@ -21,7 +21,7 @@ public class Simulator : MonoBehaviour
             var boid = Instantiate(_boids[random], generatePos, Random.rotation, transform);
             boid.Param = _param;
             boid.CenterOfSimulationArea = transform.position;
-            boid.LayerMask = _doNotIgnoreLayer;
+            boid.LayerMask = _notIgnoreLayer;
         }
     }
 
